@@ -46,7 +46,7 @@ try:
 except KeyError:
     st.query_params['code'] = None
 
-if st.query_params['code'] == None:
+if not st.experimental_user.is_logged_in:
     with st.container():
         if st.button("Log in"):
             st.login()
