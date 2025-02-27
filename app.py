@@ -62,14 +62,14 @@ try:
         client_secret=st.secrets['auth']['client_secret'], 
         scope=scope
     )
-    token = client.fetch_access_token(url=st.secrets['auth']['redirect_uri'], code=code)
-    st.write('token', token)
-    user_id, user_email = client.get_id_email(token['access_token'])
-    st.experimental_user.email = user_email
-    st.experimental_user.user_id = user_id
+    # token = client.fetch_access_token(url=st.secrets['auth']['redirect_uri'], code=code)
+    # st.write('token', token)
+    # user_id, user_email = client.get_id_email(token['access_token'])
+    # st.experimental_user.email = user_email
+    # st.experimental_user.user_id = user_id
 
-    st.write(f"Logged in as {st.experimental_user.email}")
-    st.write(f"User ID: {st.experimental_user.name}")
+    # st.write(f"Logged in as {st.experimental_user.email}")
+    # st.write(f"User ID: {st.experimental_user.name}")
 
     with st.sidebar:
         st.title("Navigation")
