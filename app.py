@@ -50,6 +50,9 @@ if not st.query_params['code'] == 'None':
     with st.container():
         if st.button("Log in"):
             st.login()
+
+            st.write('session-state', st.session_state)
+
             client = OAuth2Session(
             client_id=st.secrets['auth']['client_id'],
             client_secret=st.secrets['auth']['client_secret'],
