@@ -63,7 +63,7 @@ try:
 
     st.write('logged in', st.query_params)
 
-    token = client.fetch_access_token(code, redirect_uri=st.secrets['auth']['redirect_uri'])
+    token = client.fetch_access_token(url=st.secrets['auth']['redirect_uri'], code=code)
     st.write('token', token)
     user_id, user_email = client.get_id_email(token['access_token'])
     st.experimental_user.email = user_email
