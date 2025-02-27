@@ -9,7 +9,7 @@ def pop_tracker_status():
     #TODO: add code to save tracker data to database (s3 bucket)
 
 
-if st.experimental_user.is_logged_in:
+if st.query_params['code'] != 'None':
     with st.container():
         st.header('Test Tracker')
         owner = st.empty()
