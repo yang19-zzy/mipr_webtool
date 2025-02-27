@@ -28,13 +28,6 @@ hd = None
 prompt = None
 user_id, user_email = None, None
 
-client = OAuth2Session(
-    client_id=st.secrets['auth']['client_id'],
-    client_secret=st.secrets['auth']['client_secret'],
-    scope=st.secrets['auth']['scope'],
-    redirect_uri=st.secrets['auth']['redirect_uri'],
-    token_endpoint_auth_method='client_secret_post'
-)
 
 
 
@@ -62,7 +55,13 @@ try:
     prompt = st.query_params['prompt']
 
     st.write('logged in', st.query_params)
+    st.write(st.experimental_user)
 
+    client = OAuth2Session(
+        client_id=st.secrets['auth']['client_id'], 
+        client_secret=st.secrets['auth']['client_secret'], 
+        scope=scope
+    )
     token = client.fetch_access_token(url=st.secrets['auth']['redirect_uri'], code=code)
     st.write('token', token)
     user_id, user_email = client.get_id_email(token['access_token'])
