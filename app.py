@@ -41,12 +41,12 @@ st.write(st.session_state)
 # st.write(st.experimental_user)
 # st.write(UserInfo.values())
 
-# try:
-#     st.query_params['code']
-# except KeyError:
-#     st.query_params['code'] = None
+try:
+    st.query_params['code']
+except KeyError:
+    st.query_params['code'] = None
 
-if not st.experimental_user.is_logged_in:
+if not st.query_params['code']:
     with st.container():
         if st.button("Log in"):
             st.login()
@@ -65,7 +65,7 @@ if not st.experimental_user.is_logged_in:
 else:
     #if logged in, display content
     
-    st.write(st.query_params)
+    st.write('logged in', st.query_params)
     # state = st.query_params['state']
     # code = st.query_params['code']
     # scope = st.query_params['scope']
@@ -85,8 +85,8 @@ else:
     # st.experimental_user.name = user_id
 
 
-    st.write(f"Logged in as {st.experimental_user.email}")
-    st.write(f"User ID: {st.experimental_user.name}")
+    # st.write(f"Logged in as {st.experimental_user.email}")
+    # st.write(f"User ID: {st.experimental_user.name}")
 
 
 
