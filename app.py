@@ -41,16 +41,24 @@ st.write(st.session_state)
 # st.write(st.experimental_user)
 # st.write(UserInfo.values())
 
-try:
-    st.query_params['code']
-except KeyError:
-    st.query_params['code'] = None
+# try:
+#     st.query_params['code']
+# except KeyError:
+#     st.query_params['code'] = None
 
-if not st.query_params['code']:
+if not st.experimental_user.is_logged_in:
     with st.container():
         if st.button("Log in"):
             st.login()
-            # st.write(st.experimental_user)
+            client = OAuth2Session(
+            client_id=st.secrets['auth']['client_id'],
+            client_secret=st.secrets['auth']['client_secret'],
+            scope=st.secrets['auth']['scope'],
+            redirect_uri=st.secrets['auth']['redirect_uri'],
+            token_endpoint_auth_method='client_secret_post'
+        )
+            user_id, user_email = client.get_id_email(code)
+            
 
             #add user login record to database
              
@@ -58,23 +66,23 @@ else:
     #if logged in, display content
     
     st.write(st.query_params)
-    state = st.query_params['state']
-    code = st.query_params['code']
-    scope = st.query_params['scope']
-    authuser = st.query_params['authuser']
-    hd = st.query_params['hd']
-    prompt = st.query_params['prompt'] 
+    # state = st.query_params['state']
+    # code = st.query_params['code']
+    # scope = st.query_params['scope']
+    # authuser = st.query_params['authuser']
+    # hd = st.query_params['hd']
+    # prompt = st.query_params['prompt'] 
 
-    client = OAuth2Session(
-        client_id=st.secrets['auth']['client_id'],
-        client_secret=st.secrets['auth']['client_secret'],
-        scope=st.secrets['auth']['scope'],
-        redirect_uri=st.secrets['auth']['redirect_uri'],
-        token_endpoint_auth_method='client_secret_post'
-    )
-    user_id, user_email = client.get_id_email(code)
-    st.experimental_user.email = user_email
-    st.experimental_user.name = user_id
+    # client = OAuth2Session(
+    #     client_id=st.secrets['auth']['client_id'],
+    #     client_secret=st.secrets['auth']['client_secret'],
+    #     scope=st.secrets['auth']['scope'],
+    #     redirect_uri=st.secrets['auth']['redirect_uri'],
+    #     token_endpoint_auth_method='client_secret_post'
+    # )
+    # user_id, user_email = client.get_id_email(code)
+    # st.experimental_user.email = user_email
+    # st.experimental_user.name = user_id
 
 
     st.write(f"Logged in as {st.experimental_user.email}")
