@@ -28,6 +28,18 @@ hd = None
 prompt = None
 user_id, user_email = None, None
 
+client = OAuth2Session(
+    client_id=st.secrets['auth']['client_id'],
+    client_secret=st.secrets['auth']['client_secret'],
+    scope=st.secrets['auth']['scope'],
+    redirect_uri=st.secrets['auth']['redirect_uri'],
+    token_endpoint_auth_method='client_secret_post'
+)
+
+
+
+
+
 
 pages = [
     st.Page("p0_home.py", title='home', icon="🏠"), 
@@ -42,59 +54,30 @@ st.write(st.session_state)
 # st.write(UserInfo.values())
 
 try:
-    st.query_params['code']
-except KeyError:
-    st.query_params['code'] = None
+    code = st.query_params['code']
+    state = st.query_params['state']
+    scope = st.query_params['scope']
+    authuser = st.query_params['authuser']
+    hd = st.query_params['hd']
+    prompt = st.query_params['prompt']
 
-if not st.experimental_user.is_logged_in:
-    with st.container():
-        if st.button("Log in"):
-            st.login()
-
-            st.write('session-state', st.session_state)
-
-            client = OAuth2Session(
-            client_id=st.secrets['auth']['client_id'],
-            client_secret=st.secrets['auth']['client_secret'],
-            scope=st.secrets['auth']['scope'],
-            redirect_uri=st.secrets['auth']['redirect_uri'],
-            token_endpoint_auth_method='client_secret_post'
-        )
-            user_id, user_email = client.get_id_email(code)
-            
-
-            #add user login record to database
-             
-else:
-    #if logged in, display content
-    
     st.write('logged in', st.query_params)
-    # state = st.query_params['state']
-    # code = st.query_params['code']
-    # scope = st.query_params['scope']
-    # authuser = st.query_params['authuser']
-    # hd = st.query_params['hd']
-    # prompt = st.query_params['prompt'] 
 
-    # client = OAuth2Session(
-    #     client_id=st.secrets['auth']['client_id'],
-    #     client_secret=st.secrets['auth']['client_secret'],
-    #     scope=st.secrets['auth']['scope'],
-    #     redirect_uri=st.secrets['auth']['redirect_uri'],
-    #     token_endpoint_auth_method='client_secret_post'
-    # )
-    # user_id, user_email = client.get_id_email(code)
-    # st.experimental_user.email = user_email
-    # st.experimental_user.name = user_id
+    token = client.get_access_token(code, redirect_uri=st.secrets['auth']['redirect_uri'])
+    user_id, user_email = client.get_id_email(token['access_token'])
+    st.experimental_user.email = user_email
+    st.experimental_user.user_id = user_id
 
-
-    # st.write(f"Logged in as {st.experimental_user.email}")
-    # st.write(f"User ID: {st.experimental_user.name}")
-
-
+    st.write(f"Logged in as {st.experimental_user.email}")
+    st.write(f"User ID: {st.experimental_user.name}")
 
     with st.sidebar:
         st.title("Navigation")
         logout = st.button("Log out")
         if logout:
             st.logout()
+
+except KeyError:
+    with st.container():
+        if st.button("Log in"):
+            st.login()
