@@ -55,7 +55,7 @@ try:
     prompt = st.query_params['prompt']
 
     st.write('logged in', st.query_params)
-    st.write(st.experimental_user)
+    st.write('experimental user', st.experimental_user)
 
     client = OAuth2Session(
         client_id=st.secrets['auth']['client_id'], 
