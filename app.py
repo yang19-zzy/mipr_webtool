@@ -24,13 +24,6 @@ authuser = None
 hd = None
 prompt = None
 user_id, user_email = None, None
-client = OAuth2Session(
-    client_id=st.secrets['auth']['client_id'],
-    client_secret=st.secrets['auth']['client_secret'],
-    scope=st.secrets['auth']['scope'],
-    redirect_uri=st.secrets['auth']['redirect_uri'],
-    token_endpoint_auth_method='client_secret_post'
-)
 
 
 pages = [
@@ -85,7 +78,7 @@ else:
     st.write(f"User ID: {st.experimental_user.name}")
 
 
-    
+
     with st.sidebar:
         st.title("Navigation")
         logout = st.button("Log out")
