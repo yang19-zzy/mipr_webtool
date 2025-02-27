@@ -12,7 +12,7 @@ pages = [
 pg = st.navigation(pages)
 pg.run()
 
-
+st.write(st.session_state)
 
 
 if not st.experimental_user.is_logged_in:
