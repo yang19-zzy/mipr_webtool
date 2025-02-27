@@ -13,12 +13,14 @@ pg = st.navigation(pages)
 pg.run()
 
 st.write(st.session_state)
+st.write(st.experimental_user)
 
 
 if not st.experimental_user.is_logged_in:
     with st.container():
         if st.button("Log in"):
             st.login()
+            st.write(st.experimental_user)
 
             #add user login record to database
 else:
