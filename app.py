@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit.logger import get_logger
+from streamlit.user_info import UserInfo
 import requests
 
 st.title("Database Access Demo")
@@ -14,7 +16,7 @@ pg.run()
 
 st.write(st.session_state)
 st.write(st.experimental_user)
-
+st.write(UserInfo.values())
 
 if not st.experimental_user.is_logged_in:
     with st.container():
