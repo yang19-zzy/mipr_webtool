@@ -15,7 +15,10 @@ st.title("Database Access Demo")
 # st.secrets['auth']['token_url']
 # st.secrets['auth']['scope']
 
-st.write(st.query_params)
+st.write('query-params', st.query_params)
+st.write('session-state', st.session_state)
+st.write('secrets', st.secrets)
+st.write('experimental_user', st.experimental_user)
 
 state = None
 code = None
