@@ -54,7 +54,7 @@ if not st.query_params['code']:
 else:
     #if logged in, display content
     
-
+    st.write(st.query_params)
     state = st.query_params['state']
     code = st.query_params['code']
     scope = st.query_params['scope']
