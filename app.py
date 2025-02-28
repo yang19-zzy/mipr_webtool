@@ -7,16 +7,6 @@ import requests
 
 st.title("Database Access Demo")
 
-
-
-pages = [
-    st.Page("p0_home.py", title='home', icon="🏠"), 
-    st.Page("p1_tracker.py", title='tracker', icon="🚨")
-]
-
-pg = st.navigation(pages)
-pg.run()
-
 if not st.experimental_user.is_logged_in:
      with st.container():
         if st.button("Log in"):
@@ -30,3 +20,12 @@ else:
         logout = st.button("Log out")
         if logout:
             st.logout()
+
+
+pages = [
+    st.Page("p0_home.py", title='home', icon="🏠"), 
+    st.Page("p1_tracker.py", title='tracker', icon="🚨")
+]
+
+pg = st.navigation(pages)
+pg.run()
