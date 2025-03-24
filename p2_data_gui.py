@@ -1,111 +1,89 @@
 import streamlit as st
+from st_files_connection import FilesConnection
+from sqlalchemy import create_engine
+
 import requests
 import urllib.parse
 import boto3
-
-import time
-
-
+import s3fs
+import pandas as pd
 
 
+#aws credentials
+AWS_ACCESS_KEY = st.secrets['aws']['ACCESS_KEY_ID']
+AWS_SECRET_KEY = st.secrets['aws']['SECRET_ACCESS_KEY']
+AWS_REGION = st.secrets['aws']['DEFAULT_REGION']
+PQ_STORAGE_OPTIONS = {"key":AWS_ACCESS_KEY, "secret": AWS_SECRET_KEY}
+BUCKET_NAME = 'cosmed-metrics'
+FOLDER_PATH = ''
 
-## s3 uri:s 3://cosmed-metrics/testVO2MaxParquet/
+#initial s3 client
+s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=AWS_REGION)
 
 
-
-
-
-def page_home():
-    st.title("Home")
-
-
-
-def main():
-
-    st.write("Welcome to the database access demo")
-    # current_user = {
-    #     "logged_in": False,
-    #     "email": None,
-    #     "user_id": None,
-    #     "role": None
-    # }
-    # st.write(st.session_state.keys())
-    st.write(st.experimental_user)
-    if not st.experimental_user.is_logged_in:
-        with st.container():
-            if st.button("Log in"):
-                st.login()
-
-                #add user login record to database
+def list_prefix(bucket:str, prefix:str="", delimiter:str="") -> list:
+    """
+    list all files in a bucket with a given prefix (aka folder)
+    OR list folders in a bucket with a given prefix
+    """
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter=delimiter)
+    if delimiter:
+        return [f.get('Prefix') for f in response.get('CommonPrefixes', [])]
     else:
-        #if logged in, display content
-        st.write(f"Logged in as {st.experimental_user.email}")
-        st.write(f"User ID: {st.experimental_user.name}")
-
-        pages = {
-            "Home": [st.Page(page_home)],
-            "Data Mapping": [
-                st.Page("main01_map.py", title="Data Mapping", icon="🚨"),
-            ],
-            "Data Metrics Calculation": [
-                st.Page("main02_calc.py", title="Data Metrics Calculation"),
-            ],
-            "Data Access": [
-                st.Page("main03_gui.py", title="Data Access")
-            ],
-        }
+        return [f.get('Key') for f in response.get('Contents', [])]
 
 
+def get_data(bucket:str, prefixes:list) -> pd.DataFrame:
+    """
+    take a list of prefixes and keys and return a dataframe
+    - bucket: the name of the bucket
+    - prefix: user selected folder name(s)
+    """
+    key_list = []
+    for prefix in prefixes:
+        response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        key_list.extend([f.get('Key') for f in response.get('Contents', [])])
 
-        st.navigation(pages)
-        # page_test = st.Page("main02_calc.py", title="Data Metrics Calculation", icon="🚨")
-
-        # pg = st.navigation({'test': [page_test]})
-
-        
-        with st.sidebar:
-            st.write("Sidebar")
-            selected_schema = st.selectbox("Select data source", ["cosmed", "dexa"])
-            st.write("Selected schema: ", selected_schema)
-
-            
-
-            if st.button("Log out"):
-                st.logout()
-
-
-
-        sample_data = None
-
-        if selected_schema == "cosmed":
-            with st.container(height=400, key="cosmed-data-selection"):
-                st.header("Accessing cosmed data")
-                selected_table = st.selectbox("Select a table", ["vo2max", "visit_summary", "visit_data"])
-                # st.write("Selected table: ", selected_table)
-
-                if st.button(f"Get sample data from table {selected_table}"):
-                    sample_data = db.get_data(selected_table, 'cosmed', 5)
-                    st.write(sample_data)
-
-
-        if selected_schema == "dexa":
-            with st.container(height=400, key="dexa-data-selection"):
-                st.header("Accessing dexa data")
-                selected_table = st.selectbox("Select a table", ["table1", "table2"])
-                # st.write("Selected table: ", selected_table)
-            
-                if st.button(f"Get sample data from table {selected_table}"):
-                    sample_data = db.get_data(selected_table, 'dexa', 5)
-                    st.write(sample_data)
-            
-
-        # if sample_data is not None:
-        #     st.download_button(label="Download sample data", data=sample_data.to_csv(), file_name="sample_data.csv", mime="text/csv")
-            
-
+    # s3.get_object(Bucket=bucket, Key=key_list[0])
+    print(key_list)
+    # pd.read_parquet(f's3://{bucket}/{key_list[0]}')
     
 
 
-if __name__ == '__main__':
-    st.title("Database Access Demo")
-    main()
+if st.experimental_user.is_logged_in:
+    with st.sidebar:
+        st.write("Sidebar")
+        selected_schema = st.selectbox("Select data source", ["cosmed", "dexa"])
+        st.write("Selected schema: ", selected_schema)
+
+
+    sample_data = None
+
+    if selected_schema == "cosmed":
+        with st.container(height=400, key="cosmed-data-selection"):
+            st.header("Accessing cosmed data")
+            folders = list_prefix(BUCKET_NAME,'','/')
+            print(folders)
+            selected_folder = st.selectbox("Select a metrics", folders)
+            # selected_table = st.selectbox("Select a table", ["vo2max", "visit_summary", "visit_data"])
+            # # st.write("Selected table: ", selected_table)
+
+            if st.button(f"Get sample data from metrics {selected_folder}"):
+                # sample_data = db.get_data(selected_table, 'cosmed', 5)
+                f_list = list_prefix(BUCKET_NAME, selected_folder)
+                sample_data = pd.read_parquet(f's3://{BUCKET_NAME}/{selected_folder}', storage_options=PQ_STORAGE_OPTIONS).head()
+                st.write(sample_data)
+
+
+    if selected_schema == "dexa":
+        with st.container(height=400, key="dexa-data-selection"):
+            st.header("Accessing dexa data")
+            selected_table = st.selectbox("Select a table", ["table1", "table2"])
+            # st.write("Selected table: ", selected_table)
+        
+            if st.button(f"Get sample data from table {selected_table}"):
+                sample_data = db.get_data(selected_table, 'dexa', 5)
+                st.write(sample_data)
+
+else:
+    st.write("Please log in")
