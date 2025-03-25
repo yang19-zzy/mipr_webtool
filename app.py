@@ -1,11 +1,21 @@
 import streamlit as st
+import time
 
-from authlib.integrations.requests_client import OAuth2Session
-from authlib.oauth2.rfc7523 import ClientSecretJWT
+SESSION_TIMEOUT = 60 # 30 minutes
 
-import requests
+if "session_start_time" not in st.session_state:
+    st.session_state.session_start_time = time.time()
+
+if time.time() - st.session_state.session_start_time > SESSION_TIMEOUT:
+    st.warning("Session timed out. Please log in again.")
+    st.logout()
+
+
 
 st.title("Database Access Demo")
+st.session_state.session_start_time = time.time()
+
+
 
 
 if st.experimental_user.is_logged_in:
@@ -35,6 +45,8 @@ else:
         st.title("Navigation")
         logout = st.button("Log out")
         if logout:
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
             st.logout()
 
 
