@@ -8,6 +8,7 @@ if "session_start_time" not in st.session_state:
 
 if time.time() - st.session_state.session_start_time > SESSION_TIMEOUT:
     st.warning("Session timed out. Please log in again.")
+    time.sleep(1)
     st.logout()
 
 
@@ -29,7 +30,8 @@ st.divider()
 pages = [
     st.Page("p0_home.py", title='Home', icon="🏠"), 
     st.Page("p1_tracker.py", title='Test Tracker', icon="👣"),
-    st.Page("p2_data_gui.py", title='Data Puller', icon="🗄️")
+    st.Page("p2_data_puller.py", title='Data Puller', icon="🗄️"),
+    st.Page("p3_data_visualizer.py", title='Data Visualizer', icon="📊"),
 ]
 
 pg = st.navigation(pages)
