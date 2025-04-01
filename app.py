@@ -9,7 +9,7 @@ from funcs import *
 # ----------------------
 # Configuration
 # ----------------------
-st.set_page_config(layout='wide')
+# st.set_page_config(layout='wide')
 
 # ----------------------
 # Functions - imported from funcs.py
