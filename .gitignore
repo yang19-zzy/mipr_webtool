@@ -2,6 +2,7 @@
 .streamlit/credentials.toml
 .streamlit/config.toml
 __pycache__
-.devcontainer/
+.devcontainer
 .vscode/
 .DS_Store
+AWS*
