@@ -1,77 +1,132 @@
 import streamlit as st
-import requests
+from datetime import datetime
+
+# Constants
+LOGGED_IN_USER = None
+row_idx = 0
+DEVICE_OPTIONS = ["Apple Watch", "Garmin Watch", "Galaxy Watch", "COSMED", "Dexa", "Inbody", "Other", None]
+DEVICE_POSITIONS = ["Left wrist", "Right wrist", "Chest", "Over mouth", 'Other', None]
+TODAY = datetime.today()
 
 
-
+# Functions
 def pop_tracker_status():
-    st.toast('''Form submitted!''', icon='🎉')
-
-    #TODO: add code to save tracker data to database (s3 bucket)
+    st.toast("Form submitted!", icon="🎉")
+    st.write(st.session_state)
+    # TODO: Add code to save tracker data to database (e.g., S3 bucket)
 
 def clear_form():
-    st.session_state.form_submitted = False
-    st.session_state.submit_owner = st.experimental_user.name
-    st.session_state.submit_date = None
-    st.session_state.submit_subid = ''
-    st.session_state.submit_testid = ''
-    st.session_state.submit_testtype = ''
-    st.session_state.submit_visitnum = ''
-    st.session_state.submit_aw = ''
-    st.session_state.submit_awmetadata = ''
-    st.session_state.submit_gar = ''
-    st.session_state.submit_garmetadata = ''
-    st.session_state.submit_gw = ''
-    st.session_state.submit_gwmetadata = ''
-    st.session_state.submit_notes = ''
-    
+    for key in [
+        "submit_owner", "submit_date", "submit_subid", "submit_testid",
+        "submit_testtype", "submit_visitnum", "submit_aw", "submit_awmetadata",
+        "submit_gar", "submit_garmetadata", "submit_gw", "submit_gwmetadata", "submit_notes"
+    ]:
+        st.session_state[key] = "" if "metadata" in key or "notes" in key else TODAY if key=='submit_date' else  LOGGED_IN_USER if key=='submit_owner' else None # Reset appropriately
 
+def add_row():
+    if "rows" not in st.session_state:
+        st.session_state["rows"] = []
+    st.session_state["rows"].append({
+        "device_key": f"row_device_{len(st.session_state['rows'])}",
+        "position_key": f"row_position_{len(st.session_state['rows'])}",
+        "notes_key": f"row_notes_{len(st.session_state['rows'])}",
+        "row_idx": len(st.session_state["rows"]),
+        "other_device": None,
+        "other_position": None
+    })
 
-if st.experimental_user.is_logged_in:
-    with st.container(height=500, border=True, key="test_tracker"):
-        st.header('Test Tracker')
-        
-        #tracked variables
-        owner = st.empty()
-        date = st.empty()
-        subid = st.empty()
-        testid = st.empty()
-        testtype = st.empty() #dropdown: cosmedcpet-interval, cosmedcpet-cycle, dexa, inbody, etc.
-        visitnum = st.empty() #dropdown: 1, 2, 3, etc. indicating which visit number this participant is on
-        aw = st.empty() #applewatch worn? yes/no
-        awmetadata = st.empty() #TODO: clarify what metadata is needed
-        gar = st.empty() #garmin worn? yes/no
-        garmetadata = st.empty() #TODO: clarify what metadata is needed
-        gw = st.empty() #galacywatch worn? yes/no
-        gwmetadata = st.empty() #TODO: clarify what metadata is needed
-        notes = st.empty() #text input for notes
-        
+def remove_last_row():
+    if st.session_state.get("rows"):
+        st.session_state["rows"].pop()
 
-        
+@st.dialog("Specify Other")
+def specify_other(data_type):
+    new_item = st.text_input("Please specify 'Other':")
+    if st.button("Specify"):
+    # if st.button("Specify"):
+        key = f"{row_idx}_{data_type}"
+        # if "other_specify" not in st.session_state:
+        #     st.session_state["other_specify"] = {}
+        # st.session_state["other_specify"][key] = new_item
+        # st.session_state["dialog_open"] = False
+        # st.session_state[key] = ""  # Reset the input field
+        st.rerun()
+        return key, new_item
 
+# Check if the user is logged in
+if not st.experimental_user.is_logged_in:
+    st.warning("Please log in")
+    st.stop()
 
-        owner.text_input(label='Who is filling this form:', value=st.experimental_user.name,  key='submit_owner', disabled=True)
-        subid.text_input(label='Subject ID:', key='submit_subid')
-        date.date_input(label='Test date:', value=None, key='submit_date')
-        testid.text_input(label='Test ID:', key='submit_testid')
-        testtype.selectbox('Test type:', options=['', 'cosmedcpet-interval', 'cosmedcpet-cycle', 'dexa', 'inbody', 'other'], key='submit_testtype')
-        visitnum.selectbox('Visit number:', options=[''] + [str(i) for i in range(1, 11)], key='submit_visitnum')
-        aw.selectbox('Apple Watch worn?', options=['', 'yes', 'no'], key='submit_aw')
-        awmetadata.text_input(label='Apple Watch metadata:', key='submit_awmetadata')
-        gar.selectbox('Garmin worn?', options=['', 'yes', 'no'], key='submit_gar')
-        garmetadata.text_input(label='Garmin metadata:', key='submit_garmetadata')
-        gw.selectbox('Galaxy Watch worn?', options=['', 'yes', 'no'], key='submit_gw')
-        gwmetadata.text_input(label='Galaxy Watch metadata:', key='submit_gwmetadata')
-        notes.text_area(label='Notes:', key='submit_notes')
-        # st.session_state.form_submitted = False
-        
+# Set initial values
+if "rows" not in st.session_state:
+    st.session_state["rows"] = [{
+        "device_key": "row_device_0",
+        "position_key": "row_position_0",
+        "notes_key": "row_notes_0",
+        "row_idx": 0,
+        "other_device": None,
+        "other_position": None
+    }]
+if "submit_owner" not in st.session_state:
+    LOGGED_IN_USER = st.experimental_user.email.split("@")[0] if st.experimental_user.is_logged_in else None
+    st.session_state["submit_owner"] = LOGGED_IN_USER
+if "other_specify" not in st.session_state:
+    st.session_state["other_specify"] = {}
 
+# Main container for the form
+with st.container(border=True):
+    st.markdown("#### Test Tracker")
 
+    # with st.container():
+    # First row: Owner & Subject ID
+    col1, col2 = st.columns([1, 1])
+    col1.text_input("Who is filling this form:", value=st.session_state["submit_owner"], key="submit_owner", disabled=True)
+    col2.text_input("Subject ID:", key="submit_subid")
 
+    # Date & Test ID
+    col1, col2 = st.columns([1, 1])
+    col1.date_input("Test date:", key="submit_date")
+    col2.text_input("Test ID:", key="submit_testid")
 
-        submit_button = st.button(label='Submit', on_click=pop_tracker_status, help='Submit the form')
-        clear_button = st.button('Clear form', on_click=clear_form, help='Clear the form')
+    # Dropdown selections
+    col1, col2 = st.columns([1, 1])
+    col1.selectbox("Test type:", ["cosmedcpet-interval", "cosmedcpet-cycle", "dexa", "inbody", "other"], key="submit_testtype", index=None)
+    col2.selectbox("Visit number:", [str(i) for i in range(1, 11)], key="submit_visitnum", index=None)
 
-else:
-    st.write("Please log in")
+    st.divider()
+    st.markdown("Device(s) worn during the test:")
+    for row in st.session_state["rows"]:
+        col1, col2, col3 = st.columns(3)
+        device_selected = col1.selectbox("Device worn?", DEVICE_OPTIONS, key=row["device_key"], index=None)
+        position_selected = col2.selectbox("Body part detected?", DEVICE_POSITIONS, key=row["position_key"], index=None)
+        col3.text_input("Other notes?", key=row["notes_key"], placeholder="e.g., model, size")
 
-            #add user login record to database
+        if device_selected == "Other" and not st.session_state.get("dialog_open", False):
+            # specify_other(row["row_idx"], "device")
+            specify_other("device")
+            key = f"{row['row_idx']}_device"
+            if key in st.session_state["other_specify"]:
+                st.session_state[row["other_device"]] = st.session_state["other_specify"][key]
+        # if position_selected == "Other":
+        #     specify_other(row["row_idx"], "position")
+
+        # if (row["row_idx"], "device") in st.session_state["other_specify"]:
+        #     st.session_state[row["other_device"]] = st.session_state["other_specify"][(row["row_idx"], "device")]
+        # if (row["row_idx"], "position") in st.session_state["other_specify"]:
+        #     st.session_state[row["other_position"]] = st.session_state["other_specify"][(row["row_idx"], "position")]
+            
+
+    # Button to add a new row
+    col1, col2 = st.columns([1,1])
+    col2.button("➕", on_click=add_row, use_container_width=True, help="Add another device row")
+    col1.button("➖", on_click=remove_last_row, use_container_width=True, help="Remove last device row")
+
+    # Notes
+    # st.text_area("Notes:", key="submit_notes")
+
+    # Buttons
+    st.divider()
+    col1, col2 = st.columns([1, 1])
+    col2.button("Submit", on_click=pop_tracker_status, use_container_width=True)
+    col1.button("Clear form", on_click=clear_form, use_container_width=True)
