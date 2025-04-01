@@ -45,8 +45,9 @@ def get_data(bucket: str, prefixes: list) -> pd.DataFrame:
 @st.cache_data
 def get_secret():
     """Fetch the whitelist from AWS Secrets Manager."""
-    session = boto3.session.Session()
-    client = session.client(service_name='secretsmanager', region_name=REGION_NAME)
+    # session = boto3.session.Session()
+    # client = session.client(service_name='secretsmanager', region_name=REGION_NAME)
+    client = boto3.client(service_name='secretsmanager', region_name=REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
     try:
         response = client.get_secret_value(SecretId=WHITELIST_SECRET_NAME)
     except ClientError as e:
