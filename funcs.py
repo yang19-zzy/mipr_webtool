@@ -1,7 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 import pandas as pd
-import json
+import json, time
 from consts import *
 
 import streamlit as st
@@ -79,7 +79,7 @@ def clear_form():
 
     st.session_state["rows"] = DEVICE_ROW_STARTER.copy()
     st.session_state.update({
-        "submit_owner": LOGGED_IN_USER,
+        # "submit_owner": LOGGED_IN_USER,
         "submit_date": TODAY,
         "submit_subid": None,
         "submit_testid": None,
@@ -121,3 +121,46 @@ def specify_other(row, data_type):
         st.session_state["rows"][row_idx][f"other_{data_type}"] = new_item
         st.session_state[f"row_{data_type}_{row_idx}"] = "Other-specified"
         st.rerun()
+
+
+
+# ----------------------
+# Utility Functions
+# ----------------------
+def get_user_id():
+    """Get the email of the logged-in user."""
+    return st.experimental_user.email.split("@")[0] if st.experimental_user.is_logged_in else None
+
+def get_user_email():
+    """Get the email of the logged-in user."""
+    return st.experimental_user.email if st.experimental_user.is_logged_in else None
+
+def get_user_name():
+    """Get the name of the logged-in user."""
+    return st.experimental_user.name if st.experimental_user.is_logged_in else None
+
+def get_user_role():
+    """Get the role of the logged-in user."""
+    pass
+
+
+# ----------------------
+# UI Functions
+# ----------------------
+def render_header():
+    """Render the header of the application."""
+    st.title("Database Access Webtool Demo")
+    st.markdown("#### Test Tracker")
+    st.divider()
+
+def live_session_countdown(obj):
+    """Display a countdown timer for the session."""
+    if "session_start_time" not in st.session_state:
+        st.session_state.session_start_time = time.time()
+
+    # while time.time() - st.session_state.session_start_time <= SESSION_TIMEOUT:
+
+    for secs in range(SESSION_TIMEOUT, 0, -1):
+        minutes, seconds = divmod(secs, 60)
+        obj.metric("Session will expire in", f"{int(minutes)}:{int(seconds):02d} minutes")
+        time.sleep(1)
